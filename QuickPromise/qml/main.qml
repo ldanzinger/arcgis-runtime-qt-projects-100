@@ -26,16 +26,17 @@ ApplicationWindow {
 
     property real scaleFactor: System.displayScaleFactor
     property Envelope tileCacheExtent: null
-    property string outputTileCachePath: System.temporaryFolder.path + "/TileCacheQml_%1.tpk".arg(new Date().getTime().toString())
+    property url outputTileCachePath: System.temporaryFolder.url + "/TileCacheQml_%1.tpk".arg(new Date().getTime().toString())
     property string statusText: ""
     property string tiledServiceUrl: "http://sampleserver6.arcgisonline.com/arcgis/rest/services/World_Street_Map/MapServer"
     property string dataPath: System.userHomePath + "/ArcGIS/Runtime/Data/"
-    property string outputGdb: System.temporaryFolder.path + "/WildfireQml_%1.geodatabase".arg(new Date().getTime().toString())
+    property url outputGdb: System.temporaryFolder.url + "/WildfireQml_%1.geodatabase".arg(new Date().getTime().toString())
     property string featureServiceUrl: "http://sampleserver6.arcgisonline.com/arcgis/rest/services/Sync/WildfireSync/FeatureServer"
     property Envelope generateExtent: null
     property var generateLayerOptions: []
     property TileCache outputTileCache
     property Geodatabase outputGeodatabase
+    property ExportTileCacheParameters params
 
     // Create MapView that contains a Map
     MapView {
@@ -54,7 +55,18 @@ ApplicationWindow {
             onLoadStatusChanged: {
                 if (loadStatus === Enums.LoadStatusLoaded) {
                     // add the feature layers
-                    featureServiceInfo.load();
+                    geodatabaseSyncTask.load();
+                }
+            }
+
+            // set an initial viewpoint
+            ViewpointExtent {
+                Envelope {
+                    xMax: 12362601.050868368
+                    xMin: 10187678.26582548
+                    yMax: 2567213.6854449743
+                    yMin: 936021.5966628084
+                    spatialReference: SpatialReference.createWebMercator()
                 }
             }
         }
@@ -77,34 +89,34 @@ ApplicationWindow {
         }
     }
 
-    // Create the ArcGISFeatureServiceInfo to obtain layers
-    ArcGISFeatureServiceInfo {
-        id: featureServiceInfo
-        url: featureServiceUrl
-
-        onLoadStatusChanged: {
-            if (loadStatus === Enums.LoadStatusLoaded) {
-                for (var i = 0; i < featureLayerInfos.length; i++) {
-                    // add the layer to the map
-                    var serviceFeatureTable = ArcGISRuntimeEnvironment.createObject("ServiceFeatureTable", {url: featureLayerInfos[i].url});
-                    var featureLayer = ArcGISRuntimeEnvironment.createObject("FeatureLayer", {featureTable: serviceFeatureTable});
-                    map.operationalLayers.append(featureLayer);
-
-                    // add a new GenerateLayerOption to array for use in the GenerateGeodatabaseParameters
-                    var layerOption = ArcGISRuntimeEnvironment.createObject("GenerateLayerOption", {layerId: featureLayerInfos[i].serviceLayerId});
-                    generateLayerOptions.push(layerOption);
-                    generateParameters.layerOptions = generateLayerOptions;
-                }
-            }
-        }
-    }
-
     // create the GeodatabaseSyncTask to generate the local geodatabase
     GeodatabaseSyncTask {
         id: geodatabaseSyncTask
         url: featureServiceUrl
 
         signal generateJobDone()
+
+        onErrorChanged: {
+            console.log("ERROR:", error.message)
+        }
+
+        onLoadStatusChanged: {
+            if (loadStatus === Enums.LoadStatusLoaded) {
+                var idInfos = featureServiceInfo.layerInfos;
+                for (var i = 0; i < idInfos.length; i++) {
+                    // add the layer to the map
+                    var featureLayerUrl = featureServiceInfo.url + "/" + idInfos[i].infoId;
+                    var serviceFeatureTable = ArcGISRuntimeEnvironment.createObject("ServiceFeatureTable", {url: featureLayerUrl});
+                    var featureLayer = ArcGISRuntimeEnvironment.createObject("FeatureLayer", {featureTable: serviceFeatureTable});
+                    map.operationalLayers.append(featureLayer);
+
+                    // add a new GenerateLayerOption to array for use in the GenerateGeodatabaseParameters
+                    var layerOption = ArcGISRuntimeEnvironment.createObject("GenerateLayerOption", {layerId: idInfos[i].infoId});
+                    generateLayerOptions.push(layerOption);
+                    generateParameters.layerOptions = generateLayerOptions;
+                }
+            }
+        }
 
         function executeGenerate() {
             // execute the asynchronous task and obtain the job
@@ -189,21 +201,33 @@ ApplicationWindow {
     // Create ExportTileCacheTask
     ExportTileCacheTask {
         id: exportTask
-        mapServiceInfo: tiledLayer.mapServiceInfo
+        url: tiledServiceUrl
+        property var exportJob
 
         signal exportJobDone()
 
-        function generateDefaultParameters() {
-            // generate the default parameters with the extent and map scales specified
-            var params = exportTask.createDefaultExportTileCacheParameters(tileCacheExtent, mapView.mapScale, tiledLayer.maxScale);
+        onCreateDefaultExportTileCacheParametersStatusChanged: {
+            if (createDefaultExportTileCacheParametersStatus === Enums.TaskStatusCompleted) {
+                params = defaultExportTileCacheParameters;
 
-            // export the cache with the parameters
-            executeExportTileCacheTask(params);
+                // export the cache with the parameters
+                executeExportTileCacheTask(params);
+            }
         }
+
+        onErrorChanged: {
+            console.log("ERROR:", error.message)
+        }
+
+        function generateDefaultParameters() {
+             // generate the default parameters with the extent and map scales specified
+             exportTask.createDefaultExportTileCacheParameters(tileCacheExtent, mapView.mapScale, tiledLayer.maxScale);
+        }
+
 
         function executeExportTileCacheTask(params) {
             // execute the asynchronous task and obtain the job
-            var exportJob = exportTask.exportTileCacheWithParameters(params, outputTileCachePath);
+            exportJob = exportTask.exportTileCache(params, outputTileCachePath);
 
             // check if job is valid
             if (exportJob) {
@@ -284,7 +308,7 @@ ApplicationWindow {
         anchors {
             horizontalCenter: parent.horizontalCenter
             bottom: parent.bottom
-            bottomMargin: 10 * scaleFactor
+            bottomMargin: 25 * scaleFactor
         }
 
         width: 130 * scaleFactor
@@ -326,7 +350,7 @@ ApplicationWindow {
                 var envBuilder = ArcGISRuntimeEnvironment.createObject("EnvelopeBuilder");
                 envBuilder.setCorners(corner1, corner2);
                 tileCacheExtent = GeometryEngine.project(envBuilder.geometry, SpatialReference.createWebMercator());
-                generateExtent = tileCacheExtent;
+                generateExtent = GeometryEngine.project(envBuilder.geometry, SpatialReference.createWebMercator());
                 exportTask.generateDefaultParameters();
                 geodatabaseSyncTask.executeGenerate();
             }
