@@ -17,13 +17,16 @@ mac {
 
 #-------------------------------------------------------------------------------
 
-CONFIG += c++11 arcgis_runtime_qml100_0_0
+CONFIG += c++11
 
 QT += core gui opengl xml network positioning sensors
 QT += qml quick
 
 TEMPLATE = app
 TARGET = QuickPromise
+
+ARCGIS_RUNTIME_VERSION = 100.1
+include($$PWD/arcgisruntime.pri)
 
 #-------------------------------------------------------------------------------
 
