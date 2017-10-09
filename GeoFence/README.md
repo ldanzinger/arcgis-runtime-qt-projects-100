@@ -2,7 +2,7 @@
 
 This sample demonstrates how to take create a GeoFence to alert when a location has entered a specified area.
 
-![](screenshot.png)
+![](geofence_screenshot.png)
 
 ## How it works
 - A `QGeoPositionInfoSource` is created for obtaining the device's location. An NMEA simulation file is specified for purposes of demonstration.
