@@ -11,8 +11,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef GPSTRACKER_H
-#define GPSTRACKER_H
+#ifndef GEOFENCE_H
+#define GEOFENCE_H
 
 namespace Esri
 {
@@ -21,7 +21,6 @@ namespace ArcGISRuntime
 class Map;
 class MapQuickView;
 class Graphic;
-class PolylineBuilder;
 }
 }
 
@@ -30,26 +29,27 @@ class QNmeaPositionInfoSource;
 #include <QQuickItem>
 #include <QGeoPositionInfo>
 
-class GpsTracker : public QQuickItem
+class GeoFence : public QQuickItem
 {
   Q_OBJECT
 
 public:
-  explicit GpsTracker(QQuickItem* parent = nullptr);
-  ~GpsTracker() = default;
+  explicit GeoFence(QQuickItem* parent = nullptr);
+  ~GeoFence() = default;
 
   void componentComplete() Q_DECL_OVERRIDE;
   static void init();
 
+signals:
+  void sendAlert(const QString& message);
+
 private:
   Esri::ArcGISRuntime::Map* m_map = nullptr;
   Esri::ArcGISRuntime::MapQuickView* m_mapView = nullptr;
-  QNmeaPositionInfoSource* m_nmeaSource;
-  Esri::ArcGISRuntime::PolylineBuilder* m_polylineBuilder = nullptr;
+  QNmeaPositionInfoSource* m_nmeaSource;  
   Esri::ArcGISRuntime::Graphic* m_graphic = nullptr;
-
-private slots:
-  void positionUpdated(QGeoPositionInfo positionInfo);
+  bool m_within = false;
+  bool m_previouslyWithin = false;
 };
 
-#endif // GPSTRACKER_H
+#endif // GEOFENCE_H

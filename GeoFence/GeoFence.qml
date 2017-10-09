@@ -12,10 +12,10 @@
 // limitations under the License.
 
 import QtQuick 2.6
-import QtQuick.Controls 1.4
+import QtQuick.Dialogs 1.2
 import Esri.Samples 1.0
 
-GpsTrackerSample {
+GeoFenceSample {
     id: rootRectangle
     clip: true
     width: 800
@@ -25,5 +25,14 @@ GpsTrackerSample {
     MapView {
         anchors.fill: parent
         objectName: "mapView"
+    }
+
+    MessageDialog {
+        id: msgDialog
+    }
+
+    onSendAlert: {
+        msgDialog.text = message;
+        msgDialog.open();
     }
 }
