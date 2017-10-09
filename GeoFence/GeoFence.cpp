@@ -11,34 +11,35 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "GpsTracker.h"
+#include "GeoFence.h"
 
 #include "Map.h"
 #include "MapQuickView.h"
 #include "GraphicsOverlay.h"
 #include "Graphic.h"
-#include "SimpleLineSymbol.h"
-#include "PolylineBuilder.h"
+#include "SimpleFillSymbol.h"
 #include "SimpleRenderer.h"
+#include "Point.h"
+#include "GeometryEngine.h"
 #include <QGeoPositionInfoSource>
 #include <QNmeaPositionInfoSource>
 #include <QFile>
 
 using namespace Esri::ArcGISRuntime;
 
-GpsTracker::GpsTracker(QQuickItem* parent /* = nullptr */):
+GeoFence::GeoFence(QQuickItem* parent /* = nullptr */):
   QQuickItem(parent)
 {
 }
 
-void GpsTracker::init()
+void GeoFence::init()
 {
   // Register the map view for QML
   qmlRegisterType<MapQuickView>("Esri.Samples", 1, 0, "MapView");
-  qmlRegisterType<GpsTracker>("Esri.Samples", 1, 0, "GpsTrackerSample");
+  qmlRegisterType<GeoFence>("Esri.Samples", 1, 0, "GeoFenceSample");
 }
 
-void GpsTracker::componentComplete()
+void GeoFence::componentComplete()
 {
   QQuickItem::componentComplete();
 
@@ -48,13 +49,13 @@ void GpsTracker::componentComplete()
   // create the position info source
   m_mapView->locationDisplay()->setPositionSource(QGeoPositionInfoSource::createDefaultSource(this));
   m_mapView->locationDisplay()->start();
-  QFile* logFile = new QFile(":/GpsTracker/campus.txt", this);
+  QFile* logFile = new QFile(":/GeoFence/campus.txt", this);
   QNmeaPositionInfoSource* nmeaSource = new QNmeaPositionInfoSource(
         QNmeaPositionInfoSource::SimulationMode, this);
   nmeaSource->setDevice(logFile);
   nmeaSource->setUpdateInterval(500);
-  connect(nmeaSource, SIGNAL(positionUpdated(QGeoPositionInfo)),
-          this, SLOT(positionUpdated(QGeoPositionInfo)));
+  //  connect(nmeaSource, SIGNAL(positionUpdated(QGeoPositionInfo)),
+  //          this, SLOT(positionUpdated(QGeoPositionInfo)));
   nmeaSource->startUpdates();
 
   // Create a map using the topographic basemap
@@ -66,23 +67,36 @@ void GpsTracker::componentComplete()
   // Setup the GraphicsOverlay to display the tracks
   GraphicsOverlay* overlay = new GraphicsOverlay(this);
   m_mapView->graphicsOverlays()->append(overlay);
-  SimpleLineSymbol* sls = new SimpleLineSymbol(SimpleLineSymbolStyle::Solid, QColor("red"), 4.0, this);
-  SimpleRenderer* renderer = new SimpleRenderer(sls, this);
+  SimpleFillSymbol* sfs = new SimpleFillSymbol(SimpleFillSymbolStyle::Solid, QColor("cyan"), this);
+  SimpleRenderer* renderer = new SimpleRenderer(sfs, this);
   overlay->setRenderer(renderer);
-  m_polylineBuilder = new PolylineBuilder(SpatialReference::wgs84(), this);
-  m_graphic = new Graphic(m_polylineBuilder->toGeometry(), this);
+  Polygon alertZone = Polygon::fromJson("{\"rings\":[[[-13046212.520199999,4036277.4038000032],[-13046212.520199999,4036650.7616999969],[-13046176.962400001,4036650.7616999969],[-13046176.962400001,4036277.4038000032],[-13046212.520199999,4036277.4038000032]]],\"spatialReference\":{\"wkid\":102100,\"latestWkid\":3857}}");
+  m_graphic = new Graphic(alertZone, this);
   overlay->graphics()->append(m_graphic);
 
   // start the location display
   m_mapView->locationDisplay()->setPositionSource(nmeaSource);
   m_mapView->locationDisplay()->setAutoPanMode(LocationDisplayAutoPanMode::Recenter);
   m_mapView->locationDisplay()->start();
-}
 
-void GpsTracker::positionUpdated(QGeoPositionInfo positionInfo)
-{
-  double y = positionInfo.coordinate().latitude();
-  double x = positionInfo.coordinate().longitude();
-  m_polylineBuilder->addPoint(x,y);
-  m_graphic->setGeometry(m_polylineBuilder->toGeometry());
+  // alert when the current location intersects the polygon graphic
+  connect(m_mapView->locationDisplay(), &LocationDisplay::locationChanged, this, [this](Location location)
+  {
+    Point currentLocation = GeometryEngine::project(location.position(), SpatialReference::webMercator());
+    m_within = GeometryEngine::intersects(currentLocation, m_graphic->geometry());
+    if (!(m_previouslyWithin) && m_within) {
+      m_previouslyWithin = true;
+      emit sendAlert("Hello");
+    } else if (m_previouslyWithin && !(m_within)) {
+      m_previouslyWithin = false;
+      emit sendAlert("Goodbye");
+    } else if (m_previouslyWithin && m_within) {
+      // they were previously within, and still are
+      m_previouslyWithin = true;
+      return;
+    } else {
+      // they were not previously within, and still are not
+      return;
+    }
+  });
 }
