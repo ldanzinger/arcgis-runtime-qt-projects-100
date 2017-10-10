@@ -24,10 +24,7 @@ class Graphic;
 }
 }
 
-class QNmeaPositionInfoSource;
-
 #include <QQuickItem>
-#include <QGeoPositionInfo>
 
 class GeoFence : public QQuickItem
 {
@@ -46,7 +43,6 @@ signals:
 private:
   Esri::ArcGISRuntime::Map* m_map = nullptr;
   Esri::ArcGISRuntime::MapQuickView* m_mapView = nullptr;
-  QNmeaPositionInfoSource* m_nmeaSource;  
   Esri::ArcGISRuntime::Graphic* m_graphic = nullptr;
   bool m_within = false;
   bool m_previouslyWithin = false;
