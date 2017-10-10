@@ -3,7 +3,7 @@
         <file>GeoFence.qml</file>
         <file>GeoFence.h</file>
         <file>GeoFence.cpp</file>
-        <file>screenshot.png</file>
+        <file>geofence_screenshot.png</file>
         <file>README.md</file>
         <file>campus.txt</file>
     </qresource>

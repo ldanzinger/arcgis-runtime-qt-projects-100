@@ -44,7 +44,6 @@ public:
 private:
   Esri::ArcGISRuntime::Map* m_map = nullptr;
   Esri::ArcGISRuntime::MapQuickView* m_mapView = nullptr;
-  QNmeaPositionInfoSource* m_nmeaSource;
   Esri::ArcGISRuntime::PolylineBuilder* m_polylineBuilder = nullptr;
   Esri::ArcGISRuntime::Graphic* m_graphic = nullptr;
 
