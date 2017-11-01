@@ -1,0 +1,10 @@
+<RCC>
+    <qresource prefix="/Samples/Analysis/CustomSymbols">
+        <file alias="sample.json">CustomSymbols.json</file>        
+        <file>CustomSymbols.qml</file>
+        <file>CustomSymbols.h</file>
+        <file>CustomSymbols.cpp</file>
+        <file>screenshot.png</file>
+        <file>README.md</file>
+    </qresource>
+</RCC>

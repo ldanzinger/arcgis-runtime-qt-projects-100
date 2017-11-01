@@ -1,0 +1,8 @@
+{
+    "source" :  "CustomSymbols.qml",
+    "otherSourceFiles" :  [
+        "CustomSymbols.h",
+        "CustomSymbols.cpp"
+    ],
+    "name" : "CustomSymbols"
+}
