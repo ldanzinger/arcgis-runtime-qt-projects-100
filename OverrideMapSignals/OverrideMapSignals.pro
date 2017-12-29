@@ -18,7 +18,7 @@ QT += positioning core gui opengl network widgets sensors
 
 CONFIG += c++11
 
-ARCGIS_RUNTIME_VERSION = 100.1
+ARCGIS_RUNTIME_VERSION = 100.2
 include($$PWD/arcgisruntime.pri)
 
 win32:CONFIG += \
