@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/Samples/DisplayInformation/LineWithArrow">
+        <file>LineWithArrow.qml</file>
+        <file>LineWithArrow.h</file>
+        <file>LineWithArrow.cpp</file>
+        <file>screenshot.png</file>
+        <file>README.md</file>
+    </qresource>
+</RCC>
