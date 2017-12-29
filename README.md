@@ -1,5 +1,5 @@
-# RuntimeQtSamples - v 100.0
-A repository for sample projects that use the Qt SDK and the ArcGIS Runtime SDK for Qt - 100.0
+# RuntimeQtSamples - v 100.2
+A repository for sample projects that use the Qt SDK and the ArcGIS Runtime SDK for Qt - 100.2
 
 ## Features
 * [Quick Promise](https://github.com/ldanzinger/RuntimeQtSamples-Quartz/tree/master/QuickPromise)
@@ -12,8 +12,8 @@ A repository for sample projects that use the Qt SDK and the ArcGIS Runtime SDK 
 
 ## Requirements
 
-* Qt SDK 5.6.2  or greater
-* ArcGIS Runtime SDK for Qt - v 100.0
+* Qt SDK 5.9.2  or greater
+* ArcGIS Runtime SDK for Qt - v 100.2
 * Qt Creator
 
 ## Resources
