@@ -16,7 +16,7 @@ TEMPLATE = app
 QT += core gui opengl network positioning sensors qml quick
 CONFIG += c++11
 
-ARCGIS_RUNTIME_VERSION = 100.2
+ARCGIS_RUNTIME_VERSION = 100.2.1
 include($$PWD/arcgisruntime.pri)
 
 HEADERS += \
