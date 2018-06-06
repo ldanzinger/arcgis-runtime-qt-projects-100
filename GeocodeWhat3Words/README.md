@@ -1,5 +1,7 @@
 # GeoCode with what3words API
 
+![](screenshot.png)
+
 ## Background
 what3words is a service that aims to geocode the world by assigning a unique combination of 3 words to every location on the Earth. The service grids the Earth into 3m x 3m blocks, and assigns a unique combination of words to that block. A major benefit of this is that it allows for every place on Earth to have a unique address, even if it is not on or near a street. In addition, it is also much more human friendly to share a location by saying 3 words as opposed to telling someone your coordinates in decimal degrees or degrees minutes seconds. For example, compare telling someone that your location is "apple.house.street" to "44.9537° N, 93.0900° W". The what3words API is a REST API that allows you to geocode and reverse geocode, so that you can easily convert between real world coordinates and the what3words location.
 

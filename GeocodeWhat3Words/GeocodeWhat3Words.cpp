@@ -41,8 +41,8 @@ void GeocodeWhat3Words::componentComplete()
   // find QML MapView component
   m_mapView = findChild<MapQuickView*>("mapView");
 
-  // Create a map using the topographic BaseMap
-  m_map = new Map(Basemap::topographic(this), this);
+  // Create a map using the streets Basemap
+  m_map = new Map(Basemap::streetsNightVector(this), this);
 
   // Set map to map view
   m_mapView->setMap(m_map);
@@ -67,12 +67,12 @@ void GeocodeWhat3Words::connectSignals()
   connect(m_mapView, &MapQuickView::mouseClicked, this, [this](QMouseEvent& e)
   {
     // get the point in WGS1984 and add to the map
-    Point p = GeometryEngine::project(m_mapView->screenToLocation(e.x(), e.y()), SpatialReference::wgs84());
+    const Point p = GeometryEngine::project(m_mapView->screenToLocation(e.x(), e.y()), SpatialReference::wgs84());
     m_graphicsOverlay->graphics()->clear();
     m_graphicsOverlay->graphics()->append(new Graphic(p, this));
 
     // Reverse geocode for the words - https://docs.what3words.com/api/v2/#reverse
-    QNetworkRequest request(QUrl(m_urlTemplate.arg(p.x()).arg(p.y()).arg(m_apiKey)));
+    const QNetworkRequest request(QUrl(m_urlTemplate.arg(p.x()).arg(p.y()).arg(m_apiKey)));
     m_networkManager->get(request);
   });
 
@@ -83,13 +83,13 @@ void GeocodeWhat3Words::connectSignals()
 
     if (reply->error() == QNetworkReply::NoError) {
       // Get the http status code
-      int code = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+      const int code = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
       if (code >= 200 && code < 300) // Success
       {
         // Here we got the final reply
-        QString replyText = reply->readAll();
-        QJsonDocument jsonResponse = QJsonDocument::fromJson(replyText.toUtf8());
-        QJsonObject jsonObj = jsonResponse.object();
+        const QString replyText = reply->readAll();
+        const QJsonDocument jsonResponse = QJsonDocument::fromJson(replyText.toUtf8());
+        const QJsonObject jsonObj = jsonResponse.object();
         m_what3words = jsonObj["words"].toString();
         emit what3wordsChanged();
       }
